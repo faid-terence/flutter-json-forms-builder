@@ -19,45 +19,63 @@ class JsonFormBuilder extends StatefulWidget {
 class _JsonFormBuilderState extends State<JsonFormBuilder> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, dynamic> _formData = {};
+
   @override
   Widget build(BuildContext context) {
-    return Form(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
         key: _formKey,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Text(
+              'Fill out the form',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
             ...widget.jsonFormFields.map((field) {
               final config =
                   FormFieldConfig.fromJson(field as Map<String, dynamic>);
-
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                padding: const EdgeInsets.only(bottom: 16.0),
                 child: _buildFormField(config),
               );
-            }),
-            const SizedBox(
-              height: 20,
+            }).toList(),
+            const SizedBox(height: 30),
+            Center(
+              child: SizedBox(
+                width: double.infinity,
+                child: MyCustomButton(
+                  text: "Submit",
+                  onPressed: _submitForm,
+                  buttonStyle: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    backgroundColor: Colors.blueAccent,
+                    elevation: 5.0,
+                  ),
+                ),
+              ),
             ),
-            MyCustomButton(
-              text: "Submit",
-              onPressed: _submitForm,
-            )
           ],
-        ));
+        ),
+      ),
+    );
   }
 
-  Widget _buildFormField(FormFieldConfig configs) {
-    switch (configs.type) {
+  Widget _buildFormField(FormFieldConfig config) {
+    switch (config.type) {
       case 'custom-input':
-        return _buildTextFormField(configs);
-
+        return _buildTextFormField(config);
       case 'custom-select':
-        return _buildDropdownField(configs);
-
+        return _buildDropdownField(config);
       case 'custom-date':
-        return _buildDateField(configs);
-
+        return _buildDateField(config);
       case 'custom-radio':
-        return _buildRadioField(configs);
+        return _buildRadioField(config);
       default:
         return const SizedBox();
     }
@@ -68,7 +86,15 @@ class _JsonFormBuilderState extends State<JsonFormBuilder> {
       decoration: InputDecoration(
         labelText: config.templateOptions.label,
         hintText: config.templateOptions.placeholder,
-        border: const OutlineInputBorder(),
+        labelStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        hintStyle: const TextStyle(color: Colors.grey),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 18.0, horizontal: 16.0),
       ),
       maxLines: config.templateOptions.rows ?? 1,
       keyboardType: _getKeyboardType(config.templateOptions.type),
@@ -94,9 +120,15 @@ class _JsonFormBuilderState extends State<JsonFormBuilder> {
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
         labelText: config.templateOptions.label,
-        border: const OutlineInputBorder(),
+        labelStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 18.0, horizontal: 16.0),
       ),
-      // hint: Text(config.templateOptions!.placeholder),
       value: _formData[config.key] as String?,
       items: config.templateOptions.options?.map((option) {
         return DropdownMenuItem(
@@ -123,8 +155,17 @@ class _JsonFormBuilderState extends State<JsonFormBuilder> {
       decoration: InputDecoration(
         labelText: config.templateOptions.label,
         hintText: config.templateOptions.placeholder,
-        border: const OutlineInputBorder(),
-        suffixIcon: const Icon(Icons.calendar_today),
+        labelStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        hintStyle: const TextStyle(color: Colors.grey),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        suffixIcon:
+            const Icon(Icons.calendar_today_outlined, color: Colors.grey),
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 18.0, horizontal: 16.0),
       ),
       readOnly: true,
       controller: TextEditingController(text: _formData[config.key] as String?),
@@ -169,8 +210,9 @@ class _JsonFormBuilderState extends State<JsonFormBuilder> {
           children: [
             Text(
               config.templateOptions.label,
-              style: Theme.of(context).textTheme.titleMedium,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
             ),
+            const SizedBox(height: 8),
             ...config.templateOptions.options!.map((option) {
               return RadioListTile<String>(
                 title: Text(option.name),
@@ -217,6 +259,7 @@ class _JsonFormBuilderState extends State<JsonFormBuilder> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       widget.onSubmit(_formData);
+      // clear form data after submission
     }
   }
 }
